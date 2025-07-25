@@ -54,7 +54,7 @@ private:
 
     void handleRoutingChange(const QString &line);
     void parseInitialMessage(const QString &line);
-    bool m_isConnected;
+    bool m_isConnected=false;
 };
 
 #endif // VIDEOROUTERCLIENT_H
