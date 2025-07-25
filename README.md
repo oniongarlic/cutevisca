@@ -13,6 +13,11 @@ Contrains an example test application with most basic functions implemented
 
 * Can be controlled externaly with MQTT messages
 
+License: GPLv3
+
 ## Build requirements:
-* Qt 6.6.x
-* QtMQTT 6.6.x
+
+The library itself requires only Qt 6.6 or later. The example application also needs:
+
+* QtMQTT 6.6.x for MQTT support, https://github.com/qt/qtmqtt
+* QtGamePadLegacy for joystick control, https://github.com/pumphaus/qtgamepadlegacy
