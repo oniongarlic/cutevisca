@@ -15,6 +15,64 @@ ApplicationWindow {
     visible: true
     title: qsTr("CuteVISCA")
 
+    readonly property bool ptzEnabled: menuTrackingEnabled.checked
+    readonly property bool zoomEnabled: menuZoomEnabled.checked
+
+    menuBar: MenuBar {
+        Menu {
+            title: "File"
+            Action {
+                text: "Connect default"
+                onTriggered: {
+                    v.setCamera("192.168.0.100", 52388)
+                    v.connectCamera();
+                }
+            }
+
+            Action {
+                text: "Connect..."
+                onTriggered: {
+                    console.debug("XXX: Add connect dialog...")
+                }
+            }
+            Action {
+                text: "Emulation mode"
+                onTriggered: {
+                    v.setCamera("127.0.0.1", 52388)
+                    v.connectCamera()
+                }
+            }
+            MenuSeparator {}
+            Action { text: "Quit"; onTriggered: Qt.quit() }
+        }
+        Menu {
+            title: "Tracking"
+            Action {
+                id: menuTrackingEnabled
+                text: "Enabled"
+                checked: true
+                checkable: true
+            }
+            Action {
+                id: menuZoomEnabled
+                text: "Zoom enabled"
+                checked: false
+                checkable: true
+            }
+        }
+        Menu {
+            title: "Routing"
+            Action {
+                id: menuRouting
+                text: "Connect to routing"
+                enabled: !vrc.isConnected
+                onTriggered: {
+                    vrc.connectToHost("192.168.0.60", 9990)
+                }
+            }
+        }
+    }
+
     ViscaController {
         id: v
 
@@ -25,7 +83,7 @@ ApplicationWindow {
     VideoRouterClient {
         id: vrc
         Component.onCompleted: {
-            connectToHost("192.168.0.60", 9990)
+            // connectToHost("192.168.0.60", 9990)
         }
         onRoutingChanged: {
             console.debug("Route", output, input)
@@ -270,17 +328,6 @@ ApplicationWindow {
 
     header: ToolBar {
         RowLayout {
-            ToolButton {
-                text: "Connect"
-                onClicked: v.connectCamera()
-            }
-            ToolButton {
-                text: "Emulator"
-                onClicked: {
-                    v.setCamera("127.0.0.1", 52388)
-                    v.connectCamera()
-                }
-            }
             ToolButton {
                 text: "Power on"
                 enabled: !v.isPowered && v.isConnected
