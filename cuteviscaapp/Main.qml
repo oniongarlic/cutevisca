@@ -24,7 +24,7 @@ ApplicationWindow {
             Action {
                 text: "Connect default"
                 onTriggered: {
-                    v.setCamera("192.168.0.100", 52388)
+                    v.setCamera("192.168.0.100", 52381)
                     v.connectCamera();
                 }
             }
