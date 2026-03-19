@@ -15,6 +15,7 @@ void CuteMqttClient::subscribe(const QString &topic)
     QMqttClient::subscribe(QMqttTopicFilter(topic));
 }
 
-QString CuteMqttClient::topicString(const QMqttTopicName &topic) const {
+QString CuteMqttClient::topicString(const QMqttTopicName &topic) const
+{
     return topic.name();
 }
