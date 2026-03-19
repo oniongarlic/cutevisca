@@ -79,7 +79,7 @@ quint32 ViscaUdpController::sendViscaCommand(const QByteArray &command, uint typ
 
     if (timeoutid>0)
         killTimer(timeoutid);
-    timeoutid=startTimer(100);
+    timeoutid=startTimer(200);
 
     qDebug() << "Sent VISCA command (Seq:" << sequenceNumber << ", Size:" << bytesSent << " bytes)" << packet.toHex(':') << cameraIP << cameraPort;
     expectedSeq = sequenceNumber;
@@ -92,6 +92,7 @@ void ViscaUdpController::timerEvent(QTimerEvent *event)
 {
     qDebug("Timeout");
     killTimer(timeoutid);
+    timeoutid=0;
     emit timeoutError();
 }
 
