@@ -279,7 +279,7 @@ void ViscaUdpController::parseResponse(const QByteArray &response, quint32 seq)
         }
         break;
     default:
-        qWarning() << "Unknown respose code" << re << ip << y << r;
+        qWarning() << "Unknown response code" << re << ip << y << r;
         break;
     }
 
