@@ -1,7 +1,10 @@
 #include "viscaemulator.h"
 
 ViscaEmulator::ViscaEmulator(QObject *parent)
-    : QObject(parent), expectedSequenceNumber(0),seqNum(0) {
+    : QObject(parent),
+    expectedSequenceNumber(0),
+    seqNum(0)
+{
     socket = new QUdpSocket(this);
     if (!socket->bind(QHostAddress::LocalHost, listenPort)) {
         qCritical() << "Failed to bind UDP socket on port" << listenPort;
@@ -12,7 +15,8 @@ ViscaEmulator::ViscaEmulator(QObject *parent)
     qDebug() << "VISCA Emulator listening on UDP port" << listenPort;
 }
 
-void ViscaEmulator::onReadyRead() {
+void ViscaEmulator::onReadyRead()
+{
     ViscaClient c;
     while (socket->hasPendingDatagrams()) {
         QByteArray datagram;
@@ -55,6 +59,7 @@ void ViscaEmulator::handleViscaCommand(const QByteArray &payload, const ViscaCli
 {
     // Sequence reset
     if (payload[0] == 0x01 && payload.size()==1) {
+        qDebug("*** Command sequence reset");
         expectedSequenceNumber = 0;
         seqNum = 0;
         sendViscaResponse(QByteArray(), c, 0x02, 0x01);
@@ -62,7 +67,7 @@ void ViscaEmulator::handleViscaCommand(const QByteArray &payload, const ViscaCli
         return;
     }
 
-    if (seqNum != expectedSequenceNumber) {
+    if (seqNum < expectedSequenceNumber) {
         qWarning() << "Wrong sequence number, expected" << expectedSequenceNumber << " got " << seqNum;
         sendErrorResponse(c);
         return;
@@ -118,7 +123,8 @@ void ViscaEmulator::handleViscaCommand(const QByteArray &payload, const ViscaCli
     }
 }
 
-void ViscaEmulator::handleZoomCommand(const QByteArray &payload) {
+void ViscaEmulator::handleZoomCommand(const QByteArray &payload)
+{
     quint8 zoomSpeed, direction;
     if (payload.size() < 6) return;
 
@@ -177,25 +183,29 @@ void ViscaEmulator::handlePanTiltAbsoluteCommand(const QByteArray &payload)
     qDebug() << "Tilt set to:" << ptzState.tiltPos << "Speed:" << ptzState.tiltSpeed;
 }
 
-void ViscaEmulator::sendAckAndCompletion(const QByteArray &originalPayload, const ViscaClient &c) {
+void ViscaEmulator::sendAckAndCompletion(const QByteArray &originalPayload, const ViscaClient &c)
+{
     sendViscaResponse(QByteArray::fromHex("9041FF"), c);
     sendViscaResponse(QByteArray::fromHex("9051FF"), c);
 
     expectedSequenceNumber++;
 }
 
-void ViscaEmulator::sendErrorResponse(const ViscaClient &c) {
+void ViscaEmulator::sendErrorResponse(const ViscaClient &c)
+{
     sendViscaResponse(QByteArray::fromHex("906002FF"), c);
 
     expectedSequenceNumber++;
 }
 
-void ViscaEmulator::sendViscaResponse(const QByteArray &header, const QByteArray &responsePayload, const ViscaClient &c) {
+void ViscaEmulator::sendViscaResponse(const QByteArray &header, const QByteArray &responsePayload, const ViscaClient &c)
+{
     QByteArray packet = header + responsePayload;
     socket->writeDatagram(packet, c.sender, c.port);
 }
 
-void ViscaEmulator::sendViscaResponse(const QByteArray &responsePayload, const ViscaClient &c, uchar type, uchar detail) {
+void ViscaEmulator::sendViscaResponse(const QByteArray &responsePayload, const ViscaClient &c, uchar type, uchar detail)
+{
     QByteArray header(16, 0);
     header[0] = type;
     header[1] = detail;
@@ -206,7 +216,7 @@ void ViscaEmulator::sendViscaResponse(const QByteArray &responsePayload, const V
     header[6] = (expectedSequenceNumber >> 8) & 0xFF;
     header[7] = expectedSequenceNumber & 0xFF;
 
-    qDebug() << expectedSequenceNumber;
+    qDebug() << "Sent seq:" << expectedSequenceNumber;
 
     sendViscaResponse(header, responsePayload, c);
 }
