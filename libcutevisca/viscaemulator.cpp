@@ -206,7 +206,7 @@ void ViscaEmulator::sendViscaResponse(const QByteArray &header, const QByteArray
 
 void ViscaEmulator::sendViscaResponse(const QByteArray &responsePayload, const ViscaClient &c, uchar type, uchar detail)
 {
-    QByteArray header(16, 0);
+    QByteArray header(8, 0);
     header[0] = type;
     header[1] = detail;
     header[2] = (responsePayload.size() >> 8) & 0xFF;
