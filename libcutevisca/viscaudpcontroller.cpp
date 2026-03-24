@@ -149,6 +149,29 @@ void ViscaUdpController::inquireZoom() {
     });
 }
 
+void ViscaUdpController::inquirePosition() {
+    auto s=sendViscaCommand(QByteArray::fromHex("81090612"), 0x0110);
+    m_cbmap.insert(s, [=](QByteArray &data) {
+        int p = (static_cast<uchar>(data[0]) << 12) |
+                (static_cast<uchar>(data[1]) << 8) |
+                (static_cast<uchar>(data[2]) << 4) |
+                (static_cast<uchar>(data[3]));
+        int t = (static_cast<uchar>(data[4]) << 12) |
+                (static_cast<uchar>(data[5]) << 8) |
+                (static_cast<uchar>(data[6]) << 4) |
+                (static_cast<uchar>(data[7]));
+
+        qDebug() << "Pan position is " << p;
+        qDebug() << "Tilt position is " << t;
+
+        m_panPosition=p;
+        m_tiltPosition=t;
+
+        emit panPositionChanged();
+        emit tiltPositionChanged();
+    });
+}
+
 void ViscaUdpController::panTilt(int panSpeed, int tiltSpeed, int panDir, int tiltDir) {
     QByteArray command;
     command.append(0x81);

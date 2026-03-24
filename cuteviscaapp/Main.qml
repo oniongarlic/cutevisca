@@ -337,10 +337,7 @@ ApplicationWindow {
                 text: "Power off"
                 enabled: v.isPowered && v.isConnected
                 onClicked: v.powerOff()
-            }
-            Slider {
-
-            }
+            }            
         }
     }
 
@@ -398,6 +395,18 @@ ApplicationWindow {
         RowLayout {
             spacing: 4
             Button {
+                text: "Home"
+                onClicked: v.homePosition();
+            }
+            Button {
+                text: "Get position"
+                onClicked: v.inquirePosition();
+            }
+        }
+
+        RowLayout {
+            spacing: 4
+            Button {
                 text: "Zoom In"
                 onClicked: v.zoomIn()
             }
@@ -408,6 +417,14 @@ ApplicationWindow {
                 }
                 onReleased: {
                     v.zoomStop()
+                }
+            }
+            Slider {
+                from: 0
+                stepSize: 64
+                to: 16384
+                onValueChanged: {
+                    v.zoomSet(value)
                 }
             }
             Button {

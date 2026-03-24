@@ -13,7 +13,7 @@ class ViscaUdpController : public QObject {
     Q_PROPERTY(bool isPowered READ isPowered NOTIFY isPoweredChanged FINAL)
     Q_PROPERTY(bool isConnected READ isConnected NOTIFY isConnectedChanged FINAL)
 
-    Q_PROPERTY(int zoomPosition READ zoomPosition NOTIFY zoomPositionChanged FINAL)
+    Q_PROPERTY(int zoomPosition READ zoomPosition NOTIFY zoomPositionChanged FINAL)    
 
 public:
     explicit ViscaUdpController(QObject *parent = nullptr);
@@ -108,6 +108,8 @@ public:
     Q_INVOKABLE void homePosition(){ sendViscaCommand(QByteArray::fromHex("81010604")); }
     Q_INVOKABLE void resetPosition(){ sendViscaCommand(QByteArray::fromHex("81010605")); }
 
+    Q_INVOKABLE void inquirePosition();
+
     // Preset Memory Control
     Q_INVOKABLE void setMemoryPreset(int preset);
     Q_INVOKABLE void recallMemoryPreset(int preset);
@@ -137,6 +139,9 @@ private:
 
     int m_zoomPosition;
 
+    int m_panPosition;
+    int m_tiltPosition;
+
 signals:
     void connected();
     void networkError(int error);
@@ -144,7 +149,10 @@ signals:
     void commandError(int error);
     void isPoweredChanged();
     void isConnectedChanged();
+
     void zoomPositionChanged();
+    void panPositionChanged();
+    void tiltPositionChanged();
 
 protected:
     void timerEvent(QTimerEvent *event);
