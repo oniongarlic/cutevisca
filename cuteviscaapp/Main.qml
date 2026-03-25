@@ -347,49 +347,9 @@ ApplicationWindow {
         spacing: 4
         anchors.fill: parent
         anchors.margins: 4
-        GridLayout {
-            rows: 3
-            columns: 3
-            columnSpacing: 4
-            rowSpacing: 4
-            Button {
-                text: "Up Left"
-                onClicked: v.panLeftUp()
-            }
-            Button {
-                text: "Up"
-                onClicked: v.tiltUp()
-            }
-            Button {
-                text: "Up Right"
-                onClicked: v.panRightUp()
-            }
 
-            Button {
-                text: "Left"
-                onClicked: v.panLeft()
-            }
-            Button {
-                text: "Stop"
-                onClicked: v.stopMove();
-            }
-            Button {
-                text: "Right"
-                onClicked: v.panRight()
-            }
-
-            Button {
-                text: "Down Left"
-                onClicked: v.panLeftDown()
-            }
-            Button {
-                text: "Down"
-                onClicked: v.tiltDown()
-            }
-            Button {
-                text: "Down Right"
-                onClicked: v.panRightDown()
-            }
+        PanTiltControl {
+            visca: v
         }
 
         RowLayout {
