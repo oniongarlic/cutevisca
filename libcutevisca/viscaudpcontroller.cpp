@@ -1,6 +1,7 @@
 #include "viscaudpcontroller.h"
 
-ViscaUdpController::ViscaUdpController(QObject *parent) : QObject(parent), sequenceNumber(1), timeoutid(0) {
+ViscaUdpController::ViscaUdpController(QObject *parent) : QObject(parent), sequenceNumber(1), timeoutid(0)
+{
     udpSocket = new QUdpSocket(this);
 
     // Bind to listen for responses from the camera
@@ -101,105 +102,6 @@ void ViscaUdpController::resetSequenceNumber()
     QByteArray command = QByteArray::fromHex("01");
     sequenceNumber = 0;
     sendViscaCommand(command, 0x0200);
-}
-
-void ViscaUdpController::zoomIn(uint speed)  {
-    QByteArray command = QByteArray::fromHex("8101040700");
-
-    command[4] = 0x20 + std::clamp(speed, (uint)0, (uint)7);
-
-    sendViscaCommand(command);
-}
-
-void ViscaUdpController::zoomOut(uint speed)  {
-    QByteArray command = QByteArray::fromHex("8101040700");
-
-    command[4] = 0x30 + std::clamp(speed, (uint)0, (uint)7);
-
-    sendViscaCommand(command);
-}
-
-void ViscaUdpController::zoomSet(uint zoom)
-{
-    if (zoom > 0x6000)
-        zoom=0x6000;
-
-    QByteArray command=QByteArray::fromHex("8101044700000000");
-
-    command[4] = (zoom & 0xF000) >> 12;
-    command[5] = (zoom & 0x0F00) >> 8;
-    command[6] = (zoom & 0x00F0) >> 4 ;
-    command[7] = (zoom & 0x000F);
-
-    sendViscaCommand(command);
-}
-
-void ViscaUdpController::inquireZoom() {
-    auto s=sendViscaCommand(QByteArray::fromHex("81090447"), 0x0110);
-    m_cbmap.insert(s, [=](QByteArray &data) {
-        int z = (static_cast<uchar>(data[0]) << 12) |
-                  (static_cast<uchar>(data[1]) << 8) |
-                  (static_cast<uchar>(data[2]) << 4) |
-                  (static_cast<uchar>(data[3]));
-        qDebug() << "Zoom is " << z;
-
-        m_zoomPosition=z;
-
-        emit zoomPositionChanged();
-    });
-}
-
-void ViscaUdpController::inquirePosition() {
-    auto s=sendViscaCommand(QByteArray::fromHex("81090612"), 0x0110);
-    m_cbmap.insert(s, [=](QByteArray &data) {
-        int p = (static_cast<uchar>(data[0]) << 12) |
-                (static_cast<uchar>(data[1]) << 8) |
-                (static_cast<uchar>(data[2]) << 4) |
-                (static_cast<uchar>(data[3]));
-        int t = (static_cast<uchar>(data[4]) << 12) |
-                (static_cast<uchar>(data[5]) << 8) |
-                (static_cast<uchar>(data[6]) << 4) |
-                (static_cast<uchar>(data[7]));
-
-        qDebug() << "Pan position is " << p;
-        qDebug() << "Tilt position is " << t;
-
-        m_panPosition=p;
-        m_tiltPosition=t;
-
-        emit panPositionChanged();
-        emit tiltPositionChanged();
-    });
-}
-
-void ViscaUdpController::panTilt(int panSpeed, int tiltSpeed, int panDir, int tiltDir) {
-    QByteArray command;
-    command.append(0x81);
-    command.append(0x01);
-    command.append(0x06);
-    command.append(0x01);
-    command.append(panSpeed & 0x1F);
-    command.append(tiltSpeed & 0x1F);
-    command.append(panDir & 0x03);
-    command.append(tiltDir & 0x03);
-
-    sendViscaCommand(command);
-}
-
-void ViscaUdpController::setMemoryPreset(int preset)
-{
-    if (preset < 0 || preset > 15) return;
-    QByteArray command = QByteArray::fromHex("8101043F0100");
-    command[5] = preset;
-    sendViscaCommand(command);
-}
-
-void ViscaUdpController::recallMemoryPreset(int preset)
-{
-    if (preset < 0 || preset > 15) return;
-    QByteArray command = QByteArray::fromHex("8101043F0200");
-    command[5] = preset;
-    sendViscaCommand(command);
 }
 
 void ViscaUdpController::processIncomingData()
@@ -306,6 +208,109 @@ void ViscaUdpController::parseResponse(const QByteArray &response, quint32 seq)
         break;
     }
 
+}
+
+void ViscaUdpController::zoomIn(uint speed)
+{
+    QByteArray command = QByteArray::fromHex("8101040700");
+
+    command[4] = 0x20 + std::clamp(speed, (uint)0, (uint)7);
+
+    sendViscaCommand(command);
+}
+
+void ViscaUdpController::zoomOut(uint speed)
+{
+    QByteArray command = QByteArray::fromHex("8101040700");
+
+    command[4] = 0x30 + std::clamp(speed, (uint)0, (uint)7);
+
+    sendViscaCommand(command);
+}
+
+void ViscaUdpController::zoomSet(uint zoom)
+{
+    if (zoom > 0x6000)
+        zoom=0x6000;
+
+    QByteArray command=QByteArray::fromHex("8101044700000000");
+
+    command[4] = (zoom & 0xF000) >> 12;
+    command[5] = (zoom & 0x0F00) >> 8;
+    command[6] = (zoom & 0x00F0) >> 4 ;
+    command[7] = (zoom & 0x000F);
+
+    sendViscaCommand(command);
+}
+
+void ViscaUdpController::inquireZoom()
+{
+    auto s=sendViscaCommand(QByteArray::fromHex("81090447"), 0x0110);
+    m_cbmap.insert(s, [=](QByteArray &data) {
+        int z = (static_cast<uchar>(data[0]) << 12) |
+                (static_cast<uchar>(data[1]) << 8) |
+                (static_cast<uchar>(data[2]) << 4) |
+                (static_cast<uchar>(data[3]));
+        qDebug() << "Zoom is " << z;
+
+        m_zoomPosition=z;
+
+        emit zoomPositionChanged();
+    });
+}
+
+void ViscaUdpController::inquirePosition()
+{
+    auto s=sendViscaCommand(QByteArray::fromHex("81090612"), 0x0110);
+    m_cbmap.insert(s, [=](QByteArray &data) {
+        int p = (static_cast<uchar>(data[0]) << 12) |
+                (static_cast<uchar>(data[1]) << 8) |
+                (static_cast<uchar>(data[2]) << 4) |
+                (static_cast<uchar>(data[3]));
+        int t = (static_cast<uchar>(data[4]) << 12) |
+                (static_cast<uchar>(data[5]) << 8) |
+                (static_cast<uchar>(data[6]) << 4) |
+                (static_cast<uchar>(data[7]));
+
+        qDebug() << "Pan position is " << p;
+        qDebug() << "Tilt position is " << t;
+
+        m_panPosition=p;
+        m_tiltPosition=t;
+
+        emit panPositionChanged();
+        emit tiltPositionChanged();
+    });
+}
+
+void ViscaUdpController::panTilt(int panSpeed, int tiltSpeed, int panDir, int tiltDir) {
+    QByteArray command;
+    command.append(0x81);
+    command.append(0x01);
+    command.append(0x06);
+    command.append(0x01);
+    command.append(panSpeed & 0x1F);
+    command.append(tiltSpeed & 0x1F);
+    command.append(panDir & 0x03);
+    command.append(tiltDir & 0x03);
+
+    sendViscaCommand(command);
+}
+
+void ViscaUdpController::setMemoryPreset(int preset)
+{
+    if (preset < 0 || preset > 15) return;
+    QByteArray command = QByteArray::fromHex("8101043F0100");
+    command[5] = preset;
+    sendViscaCommand(command);
+}
+
+void ViscaUdpController::recallMemoryPreset(int preset)
+{
+    if (preset < 0 || preset > 15) return;
+    QByteArray command = QByteArray::fromHex("8101043F0200");
+    command[5] = preset;
+    sendViscaCommand(command);
 }
 
 bool ViscaUdpController::isPowered() const
