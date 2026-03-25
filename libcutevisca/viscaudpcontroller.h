@@ -150,6 +150,9 @@ signals:
     void isPoweredChanged();
     void isConnectedChanged();
 
+    void commandACK();
+    void commandCompleted();
+
     void zoomPositionChanged();
     void panPositionChanged();
     void tiltPositionChanged();

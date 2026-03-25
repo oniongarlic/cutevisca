@@ -170,6 +170,7 @@ void ViscaUdpController::processIncomingData()
 void ViscaUdpController::parseResponse(const QByteArray &response, quint32 seq)
 {
     if (response.size()<8) {
+        qWarning("Invalid response");
         return;
     }
     uchar ip=response.at(8);
@@ -188,7 +189,8 @@ void ViscaUdpController::parseResponse(const QByteArray &response, quint32 seq)
 
     switch (re) {
     case 0x4: // ACK
-        qDebug() << "Command ACK" << ip << y << r;
+        qDebug() << "Command ACK" << seq << ip << y << r;
+        emit commandACK();
         break;
     case 0x5: // Completed
         if (response.size()>11) {
@@ -200,7 +202,8 @@ void ViscaUdpController::parseResponse(const QByteArray &response, quint32 seq)
                 cb(data);
             }
         } else {
-            qDebug() << "Command Completion";
+            qDebug() << "Command Completion" << seq << ip << y << r;
+            emit commandCompleted();
         }
         break;
     default:
