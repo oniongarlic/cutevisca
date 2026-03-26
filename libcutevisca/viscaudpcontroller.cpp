@@ -244,7 +244,13 @@ void ViscaUdpController::requestVersion()
 void ViscaUdpController::requestPower()
 {
     sendViscaCommandCallback(QByteArray::fromHex("81090400"), 0x0110, [=](QByteArray &data) {
-        qDebug() << "Power is " << data;
+        bool t;
+        t=(data[0]==0x02) ? true : false;
+
+        if (m_isPowered!=t) {
+            m_isPowered=t;
+            emit isPoweredChanged();
+        }
     });
 }
 
