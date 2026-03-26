@@ -1,20 +1,24 @@
 #include "viscaudpcontroller.h"
 
-ViscaUdpController::ViscaUdpController(QObject *parent) : QObject(parent), sequenceNumber(1), timeoutid(0)
+ViscaUdpController::ViscaUdpController(QObject *parent) :
+    QObject(parent),
+    sequenceNumber(1),
+    timeoutid(0)
 {
     udpSocket = new QUdpSocket(this);
 
+    // Connect response handling
+    connect(udpSocket, &QUdpSocket::readyRead, this, &ViscaUdpController::processIncomingData);
+    connect(this, &ViscaUdpController::connected,  this, &ViscaUdpController::getDeviceStatus);
+}
+
+bool ViscaUdpController::connectCamera()
+{
     // Bind to listen for responses from the camera
     if (!udpSocket->bind(QHostAddress::Any, localPort)) {
         qWarning("Failed to bind listening socket");
     }
 
-    // Connect response handling
-    connect(udpSocket, &QUdpSocket::readyRead, this, &ViscaUdpController::processIncomingData);
-}
-
-bool ViscaUdpController::connectCamera()
-{
     resetSequenceNumber();
 
     return true;
@@ -89,19 +93,20 @@ quint32 ViscaUdpController::sendViscaCommand(const QByteArray &command, uint typ
     return expectedSeq;
 }
 
+quint32 ViscaUdpController::sendViscaCommandCallback(const QByteArray &command, uint type, std::function<void(QByteArray &data)> cb)
+{
+    auto s=sendViscaCommand(command, type);
+    m_cbmap.insert(s, cb);
+
+    return s;
+}
+
 void ViscaUdpController::timerEvent(QTimerEvent *event)
 {
     qDebug("Timeout");
     killTimer(timeoutid);
     timeoutid=0;
     emit timeoutError();
-}
-
-void ViscaUdpController::resetSequenceNumber()
-{
-    QByteArray command = QByteArray::fromHex("01");
-    sequenceNumber = 0;
-    sendViscaCommand(command, 0x0200);
 }
 
 void ViscaUdpController::processIncomingData()
@@ -128,10 +133,6 @@ void ViscaUdpController::processIncomingData()
 
         qDebug() << "Response " << type << detail << " (Seq:" << seq << ") from camera: " << buffer.toHex(':');
 
-        if (seq!=expectedSeq) {
-            qWarning() << "Unexpected sequence ack" << seq << expectedSeq;
-        }
-
         switch (type) {
         case 0x01: // Command
             switch (detail){
@@ -154,9 +155,6 @@ void ViscaUdpController::processIncomingData()
                 break;
             case 0x01: // Control reply
                 sequenceNumber=1;
-                // Query power state
-                requestPower();
-                //clear();
                 m_isConnected=true;
                 emit isConnectedChanged();
                 emit connected();
@@ -189,17 +187,19 @@ void ViscaUdpController::parseResponse(const QByteArray &response, quint32 seq)
 
     switch (re) {
     case 0x4: // ACK
-        qDebug() << "Command ACK" << seq << ip << y << r;
+        qDebug() << "Command ACK" << seq << ip << y << r;        
         emit commandACK();
         break;
     case 0x5: // Completed
         if (response.size()>11) {
             auto data=response.mid(10);
-            qDebug() << "Inquiery Completion" << data.toHex(':');
+            qDebug() << "Inquiery Completion" << seq << data.toHex(':');
             auto cb=m_cbmap.value(seq);
             if (cb) {
                 m_cbmap.remove(seq);
                 cb(data);
+            } else {
+                qWarning("Inquiery callback not found for sequence");
             }
         } else {
             qDebug() << "Command Completion" << seq << ip << y << r;
@@ -207,10 +207,45 @@ void ViscaUdpController::parseResponse(const QByteArray &response, quint32 seq)
         }
         break;
     default:
-        qWarning() << "Unknown response code" << re << ip << y << r;
+        qWarning() << "Unknown response code" << seq << re << ip << y << r;
         break;
     }
 
+}
+
+void ViscaUdpController::getDeviceStatus()
+{
+    requestVersion();
+    requestPower();
+
+    pollDevice();
+}
+
+void ViscaUdpController::pollDevice()
+{
+    inquireZoom();
+    inquirePosition();
+}
+
+void ViscaUdpController::resetSequenceNumber()
+{
+    QByteArray command = QByteArray::fromHex("01");
+    sequenceNumber = 0;
+    sendViscaCommand(command, 0x0200);
+}
+
+void ViscaUdpController::requestVersion()
+{
+    auto s=sendViscaCommandCallback(QByteArray::fromHex("81090002"), 0x0110, [=](QByteArray &data) {
+        qDebug() << "Version is " << data;
+    });
+}
+
+void ViscaUdpController::requestPower()
+{
+    sendViscaCommandCallback(QByteArray::fromHex("81090400"), 0x0110, [=](QByteArray &data) {
+        qDebug() << "Power is " << data;
+    });
 }
 
 void ViscaUdpController::zoomIn(uint speed)

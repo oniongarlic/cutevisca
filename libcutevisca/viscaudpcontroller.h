@@ -29,8 +29,8 @@ public:
 
     Q_INVOKABLE void clear()  { sendViscaCommand(QByteArray::fromHex("81010001")); }
 
-    Q_INVOKABLE void requestVersion()  { sendViscaCommand(QByteArray::fromHex("81090002"), 0x0110); }
-    Q_INVOKABLE void requestPower()  { sendViscaCommand(QByteArray::fromHex("81090400"), 0x0110); }
+    Q_INVOKABLE void requestVersion();
+    Q_INVOKABLE void requestPower();
 
     // Power Control
     Q_INVOKABLE void powerOn()  { sendViscaCommand(QByteArray::fromHex("8101040002")); }
@@ -158,7 +158,12 @@ signals:
     void tiltPositionChanged();
 
 protected:
+    quint32 sendViscaCommandCallback(const QByteArray &command, uint type, std::function<void (QByteArray &)> cb);
+
+protected slots:
     void timerEvent(QTimerEvent *event);
+    void pollDevice();
+    void getDeviceStatus();
 };
 
 #endif // VISCAUDPCONTROLLER_H
