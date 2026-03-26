@@ -23,12 +23,12 @@ ApplicationWindow {
             title: "File"
             Action {
                 text: "Connect default"
+                enabled: !v.isConnected
                 onTriggered: {
                     v.setCamera("192.168.0.100", 52381)
                     v.connectCamera();
                 }
             }
-
             Action {
                 text: "Connect..."
                 onTriggered: {
@@ -36,14 +36,25 @@ ApplicationWindow {
                 }
             }
             Action {
+                text: "Disconnect..."
+                enabled: v.isConnected
+                onTriggered: {
+                    v.disconnectCamera()
+                }
+            }
+            Action {
                 text: "Emulation mode"
+                enabled: !v.isConnected
                 onTriggered: {
                     v.setCamera("127.0.0.1", 52388)
                     v.connectCamera()
                 }
             }
             MenuSeparator {}
-            Action { text: "Quit"; onTriggered: Qt.quit() }
+            Action {
+                text: "Quit";
+                onTriggered: Qt.quit()
+            }
         }
         Menu {
             title: "Tracking"
@@ -78,6 +89,8 @@ ApplicationWindow {
 
         onIsConnectedChanged: mq.publish('cutevisca/state', isConnected ? 'connected' : 'disconnected')
         onIsPoweredChanged: mq.publish('cutevisca/powered', isPowered ? 'on' : 'off')
+
+        onZoomPositionChanged: zoomSlider.value=zoomPosition;
     }
 
     VideoRouterClient {
@@ -349,7 +362,7 @@ ApplicationWindow {
         anchors.margins: 4
 
         PanTiltControl {
-            visca: v
+            visca: v                    
         }
 
         RowLayout {
@@ -380,9 +393,11 @@ ApplicationWindow {
                 }
             }
             Slider {
+                id: zoomSlider
                 from: 0
                 stepSize: 64
                 to: 16384
+                wheelEnabled: true
                 onValueChanged: {
                     v.zoomSet(value)
                 }
