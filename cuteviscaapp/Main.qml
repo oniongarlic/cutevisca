@@ -3,6 +3,8 @@ import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
 
+import QtMultimedia
+
 import org.tal.visca
 import org.tal.mqtt
 import org.tal.bm
@@ -601,8 +603,19 @@ ApplicationWindow {
             color: "green"
             Layout.fillHeight: true
             Layout.fillWidth: true
+
+            VideoOutput {
+                id: cvo
+                anchors.fill: parent
+            }
         }
 
+    }
+
+    MediaPlayer {
+        id: mp
+        source: "rtsp://192.168.0.100:554/video1"
+        videoOutput: cvo
     }
 
     footer: ToolBar {
@@ -612,6 +625,14 @@ ApplicationWindow {
             }
             Label {
                 id: faceSize
+            }
+            ToolButton {
+                text: "Show"
+                onClicked: mp.play()
+            }
+            ToolButton {
+                text: "Stop"
+                onClicked: mp.stop()
             }
         }
     }

@@ -9,7 +9,7 @@ project(cutevisca VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Network Mqtt)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 Multimedia Network Mqtt)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
@@ -28,7 +28,12 @@ qt_add_qml_module(cuteviscaapp
 )
 
 target_link_libraries(cuteviscaapp
-    PRIVATE Qt6::Quick Qt6::Network Qt6::Mqtt libcutevisca
+    PRIVATE
+        Qt6::Quick
+        Qt6::Network
+        Qt6::Multimedia
+        Qt6::Mqtt
+        libcutevisca
 )
 
 include(GNUInstallDirs)
