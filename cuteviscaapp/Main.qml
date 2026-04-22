@@ -20,6 +20,8 @@ ApplicationWindow {
     readonly property bool ptzEnabled: menuTrackingEnabled.checked
     readonly property bool zoomEnabled: menuZoomEnabled.checked
 
+    property int memorySlots: 6
+
     menuBar: MenuBar {
         Menu {
             title: "File"
@@ -529,6 +531,8 @@ ApplicationWindow {
             Layout.alignment: Qt.AlignTop
 
             ColumnLayout {
+                Layout.alignment: Qt.AlignTop
+                spacing: 5
                 Label {
                     text: "Whitebalance"
                 }
@@ -558,11 +562,13 @@ ApplicationWindow {
                     text: "Memory Recall"
                 }
                 Repeater {
-                    model: 5
+                    model: memorySlots
                     delegate: Button {
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
                         required property int index
                         text: index+1
-                        onClicked: v.recallMemoryPreset(index+1)
+                        onClicked: v.recallMemoryPreset(index)
                     }
                 }
             }
@@ -575,11 +581,12 @@ ApplicationWindow {
                     text: "Memory Save"
                 }
                 Repeater {
-                    model: 5
+                    model: memorySlots
                     delegate: DelayButton {
+                        Layout.fillHeight: true
                         required property int index
                         text: index+1
-                        onClicked: v.setMemoryPreset(index+1)
+                        onClicked: v.setMemoryPreset(index)
                     }
                 }
             }
