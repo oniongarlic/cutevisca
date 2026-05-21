@@ -379,6 +379,18 @@ ApplicationWindow {
                 text: "Get position"
                 onClicked: v.inquirePosition();
             }
+            Slider {
+                id: panSlider
+                from: -8700
+                to: 8700
+                onValueChanged: v.setPosition(12, value, tiltSlider.value)
+            }
+            Slider {
+                id: tiltSlider
+                from: -1024
+                to: 1024
+                onValueChanged: v.setPosition(12, panSlider.value, value)
+            }
         }
 
         RowLayout {

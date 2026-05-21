@@ -105,6 +105,7 @@ public:
     Q_INVOKABLE void tiltDown() { panTilt(10, 10, 3, 2); }
     Q_INVOKABLE void stopMove() { panTilt(10, 10, 3, 3); }
 
+    Q_INVOKABLE void setPosition(int speed, int pan, int tilt);
     Q_INVOKABLE void homePosition(){ sendViscaCommand(QByteArray::fromHex("81010604")); }
     Q_INVOKABLE void resetPosition(){ sendViscaCommand(QByteArray::fromHex("81010605")); }
 

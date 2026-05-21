@@ -327,7 +327,8 @@ void ViscaUdpController::inquirePosition()
     });
 }
 
-void ViscaUdpController::panTilt(int panSpeed, int tiltSpeed, int panDir, int tiltDir) {
+void ViscaUdpController::panTilt(int panSpeed, int tiltSpeed, int panDir, int tiltDir)
+{
     QByteArray command;
     command.append(0x81);
     command.append(0x01);
@@ -337,6 +338,36 @@ void ViscaUdpController::panTilt(int panSpeed, int tiltSpeed, int panDir, int ti
     command.append(tiltSpeed & 0x1F);
     command.append(panDir & 0x03);
     command.append(tiltDir & 0x03);
+
+    sendViscaCommand(command);
+}
+
+void ViscaUdpController::setPosition(int speed, int pan, int tilt)
+{
+    QByteArray command;
+    command.append(0x81);
+    command.append(0x01);
+    command.append(0x06);
+    command.append(0x02);
+
+    speed=std::clamp(speed, 1, 18);
+
+    command.append(speed & 0x1F);
+    command.append((char)0x00);
+
+    pan=std::clamp(pan, -0x2200, 0x2200);
+
+    command.append((pan & 0xF000) >> 12);
+    command.append((pan & 0x0F00) >> 8);
+    command.append((pan & 0x00F0) >> 4);
+    command.append((pan & 0x000F));
+
+    tilt=std::clamp(tilt, -0x0400, 0x1200);
+
+    command.append((tilt & 0xF000) >> 12);
+    command.append((tilt & 0x0F00) >> 8);
+    command.append((tilt & 0x00F0) >> 4);
+    command.append((tilt & 0x000F));
 
     sendViscaCommand(command);
 }
