@@ -5,49 +5,60 @@ import QtQuick.Layouts
 import org.tal.visca
 
 GridLayout {
+    id: ptc
     rows: 3
     columns: 3
     columnSpacing: 4
     rowSpacing: 4
 
-    required property ViscaController visca;
+    signal pressed(int x, int y)
+    signal released()
 
     Button {
         text: "Up Left"
-        onClicked: visca.panLeftUp()
+        onPressed: ptc.pressed(-1, -1)
+        onReleased: ptc.released()
     }
     Button {
         text: "Up"
-        onClicked: visca.tiltUp()
+        onPressed: ptc.pressed(0, -1)
+        onReleased: ptc.released()
     }
     Button {
         text: "Up Right"
-        onClicked: visca.panRightUp()
+        onPressed: ptc.pressed(1, -1)
+        onReleased: ptc.released()
     }
 
     Button {
         text: "Left"
-        onClicked: visca.panLeft()
+        onPressed: ptc.pressed(-1, 0)
+        onReleased: ptc.released()
     }
     Button {
         text: "Stop"
-        onClicked: visca.stopMove();
+        onPressed: ptc.pressed(0, 0)
+        onReleased: ptc.released()
     }
     Button {
         text: "Right"
-        onClicked: visca.panRight()
+        onPressed: ptc.pressed(1, 0)
+        onReleased: ptc.released()
     }
 
     Button {
         text: "Down Left"
-        onClicked: visca.panLeftDown()
+        onPressed: ptc.pressed(-1, 1)
+        onReleased: ptc.released()
     }
     Button {
         text: "Down"
-        onClicked: visca.tiltDown()
+        onPressed: ptc.pressed(0, -1)
+        onReleased: ptc.released()
     }
     Button {
         text: "Down Right"
-        onClicked: visca.panRightDown()
+        onPressed: ptc.pressed(1, 1)
+        onReleased: ptc.released()
     }
 }

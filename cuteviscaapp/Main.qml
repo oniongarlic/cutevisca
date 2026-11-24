@@ -20,7 +20,7 @@ ApplicationWindow {
     readonly property bool ptzEnabled: menuTrackingEnabled.checked
     readonly property bool zoomEnabled: menuZoomEnabled.checked
 
-    property int memorySlots: 6
+    property int memorySlots: 8
 
     menuBar: MenuBar {
         Menu {
@@ -354,7 +354,7 @@ ApplicationWindow {
                 text: "Power off"
                 enabled: v.isPowered && v.isConnected
                 onClicked: v.powerOff()
-            }            
+            }
         }
     }
 
@@ -365,8 +365,43 @@ ApplicationWindow {
         anchors.fill: parent
         anchors.margins: 4
 
+        Slider {
+            id: speedSlider
+            from: 1
+            to: 12
+            value: 10
+            stepSize: 1
+            wheelEnabled: true
+        }
+
         PanTiltControl {
-            visca: v                    
+            id: ptc
+
+            property int speed: speedSlider.value
+
+            onPressed: (x,y) => {
+                           let lr=3;
+                           let ud=3;
+                           switch (x) {
+                               case -1:
+                               lr=1;
+                               break;
+                               case 1:
+                               lr=2;
+                               break;
+                           }
+                           switch (y) {
+                               case -1:
+                               ud=1;
+                               break;
+                               case 1:
+                               ud=2;
+                               break;
+                           }
+
+                           v.panTilt(speed, speed, lr, ud);
+                       }
+            onReleased: v.stopMove();
         }
 
         RowLayout {
