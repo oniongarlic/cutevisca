@@ -376,36 +376,59 @@ ApplicationWindow {
             wheelEnabled: true
         }
 
-        PanTiltControl {
-            id: ptc
+        RowLayout {
+            spacing: 8
+            PanTiltControl {
+                id: ptc
 
-            property int speed: speedSlider.value
+                property int speed: speedSlider.value
 
-            onPressed: (x,y) => {
-                           let lr=3;
-                           let ud=3;
-                           switch (x) {
-                               case -1:
-                               lr=1;
-                               break;
-                               case 1:
-                               lr=2;
-                               break;
+                onPressed: (x,y) => {
+                               let lr=3;
+                               let ud=3;
+                               switch (x) {
+                                   case -1:
+                                   lr=1;
+                                   break;
+                                   case 1:
+                                   lr=2;
+                                   break;
+                               }
+                               switch (y) {
+                                   case -1:
+                                   ud=1;
+                                   break;
+                                   case 1:
+                                   ud=2;
+                                   break;
+                               }
+
+                               v.panTilt(speed, speed, lr, ud);
                            }
-                           switch (y) {
-                               case -1:
-                               ud=1;
-                               break;
-                               case 1:
-                               ud=2;
-                               break;
-                           }
+                onReleased: v.stopMove();
 
-                           v.panTilt(speed, speed, lr, ud);
-                       }
-            onReleased: v.stopMove();
+                onStop: v.stopMove();
+            }
 
-            onStop: v.stopMove();
+            Slider {
+                id: tiltSlider
+                from: -1024
+                to: 1024
+                wheelEnabled: true
+                stepSize: 50
+                orientation: Qt.Vertical
+                Layout.fillHeight: true
+                onValueChanged: v.setPosition(ptc.speed, panSlider.value, value)
+            }
+        }
+
+        Slider {
+            id: panSlider
+            from: -8700
+            to: 8700
+            wheelEnabled: true
+            stepSize: 50
+            onValueChanged: v.setPosition(ptc.speed, value, tiltSlider.value)
         }
 
         RowLayout {
@@ -417,22 +440,6 @@ ApplicationWindow {
             Button {
                 text: "Get position"
                 onClicked: v.inquirePosition();
-            }
-            Slider {
-                id: panSlider
-                from: -8700
-                to: 8700
-                wheelEnabled: true
-                stepSize: 50
-                onValueChanged: v.setPosition(ptc.speed, value, tiltSlider.value)
-            }
-            Slider {
-                id: tiltSlider
-                from: -1024
-                to: 1024
-                wheelEnabled: true
-                stepSize: 50
-                onValueChanged: v.setPosition(ptc.speed, panSlider.value, value)
             }
         }
 
@@ -615,7 +622,7 @@ ApplicationWindow {
                 spacing: 4
                 Label {
                     text: "Memory Recall"
-                }                
+                }
                 Repeater {
                     model: memorySlots
                     delegate: Button {
