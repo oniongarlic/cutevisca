@@ -14,6 +14,8 @@ GridLayout {
     signal pressed(int x, int y)
     signal released()
 
+    signal stop();
+
     Button {
         text: "Up Left"
         onPressed: ptc.pressed(-1, -1)
@@ -37,8 +39,7 @@ GridLayout {
     }
     Button {
         text: "Stop"
-        onPressed: ptc.pressed(0, 0)
-        onReleased: ptc.released()
+        onClicked: ptc.stop();
     }
     Button {
         text: "Right"

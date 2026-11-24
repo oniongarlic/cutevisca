@@ -22,14 +22,16 @@ ApplicationWindow {
 
     property int memorySlots: 8
 
+    property string hostname: "192.168.0.100"
+
     menuBar: MenuBar {
         Menu {
             title: "File"
             Action {
-                text: "Connect default"
+                text: "Connect default ("+hostname+")"
                 enabled: !v.isConnected
                 onTriggered: {
-                    v.setCamera("192.168.0.100", 52381)
+                    v.setCamera(hostname, 52381)
                     v.connectCamera();
                 }
             }
@@ -402,6 +404,8 @@ ApplicationWindow {
                            v.panTilt(speed, speed, lr, ud);
                        }
             onReleased: v.stopMove();
+
+            onStop: v.stopMove();
         }
 
         RowLayout {
@@ -418,13 +422,17 @@ ApplicationWindow {
                 id: panSlider
                 from: -8700
                 to: 8700
-                onValueChanged: v.setPosition(12, value, tiltSlider.value)
+                wheelEnabled: true
+                stepSize: 50
+                onValueChanged: v.setPosition(ptc.speed, value, tiltSlider.value)
             }
             Slider {
                 id: tiltSlider
                 from: -1024
                 to: 1024
-                onValueChanged: v.setPosition(12, panSlider.value, value)
+                wheelEnabled: true
+                stepSize: 50
+                onValueChanged: v.setPosition(ptc.speed, panSlider.value, value)
             }
         }
 
@@ -607,7 +615,7 @@ ApplicationWindow {
                 spacing: 4
                 Label {
                     text: "Memory Recall"
-                }
+                }                
                 Repeater {
                     model: memorySlots
                     delegate: Button {
@@ -655,8 +663,12 @@ ApplicationWindow {
 
         Rectangle {
             color: "green"
+            border.color: "black"
+            border.width: 2
             Layout.fillHeight: true
             Layout.fillWidth: true
+            Layout.minimumWidth: 192
+            Layout.minimumHeight: 108
 
             VideoOutput {
                 id: cvo
