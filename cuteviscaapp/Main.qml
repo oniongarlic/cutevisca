@@ -343,7 +343,7 @@ ApplicationWindow {
 
     }
 
-    header: ToolBar {
+    footer: ToolBar {
         RowLayout {
             ToolButton {
                 text: "Power on"
@@ -672,7 +672,7 @@ ApplicationWindow {
         videoOutput: cvo
     }
 
-    footer: ToolBar {
+    header: ToolBar {
         RowLayout {
             Label {
                 id: facePos
