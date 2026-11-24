@@ -648,7 +648,10 @@ ApplicationWindow {
                         Layout.fillHeight: true
                         required property int index
                         text: index+1
-                        onClicked: v.setMemoryPreset(index)
+                        onClicked: {
+                            v.setMemoryPreset(index)
+                            checked=false;
+                        }
                     }
                 }
             }
