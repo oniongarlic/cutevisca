@@ -24,7 +24,7 @@ qt_add_qml_module(cuteviscaapp
     QML_FILES
         Main.qml
         SOURCES videorouterclient.h videorouterclient.cpp
-        QML_FILES PanTiltControl.qml
+        QML_FILES PanTiltControl.qml ConnectDialog.qml CameraSettingsDrawer.qml
 )
 
 target_link_libraries(cuteviscaapp

@@ -12,6 +12,7 @@ import org.tal.bm
 import QtGamepadLegacy
 
 ApplicationWindow {
+    id: root
     width: 800
     height: 480
     visible: true
@@ -23,6 +24,8 @@ ApplicationWindow {
     property int memorySlots: 8
 
     property string hostname: "192.168.0.100"
+
+    property string cameraStream: "rtsp://"+hostname+":554/video1"
 
     menuBar: MenuBar {
         Menu {
@@ -38,7 +41,7 @@ ApplicationWindow {
             Action {
                 text: "Connect..."
                 onTriggered: {
-                    console.debug("XXX: Add connect dialog...")
+                    cd.open()
                 }
             }
             Action {
@@ -62,6 +65,20 @@ ApplicationWindow {
                 onTriggered: Qt.quit()
             }
         }
+        Menu {
+            title: "Video"
+
+            MenuItem {
+                text: "Stream"
+                checkable: true
+
+            }
+            MenuItem {
+                text: "Capture"
+                checkable: true
+            }
+        }
+
         Menu {
             title: "Tracking"
             Action {
@@ -90,6 +107,54 @@ ApplicationWindow {
         }
     }
 
+    header: ToolBar {
+        RowLayout {
+            ToolButton {
+                text: "Settings"
+                onClicked: csd.open()
+            }
+
+            ToolSeparator {
+
+            }
+
+            Label {
+                id: facePos
+            }
+            Label {
+                id: faceSize
+            }
+
+            ToolSeparator {
+
+            }
+
+            ToolButton {
+                text: "Show"
+                onClicked: mp.play()
+            }
+            ToolButton {
+                text: "Stop"
+                onClicked: mp.stop()
+            }
+        }
+    }
+
+    ConnectDialog {
+        id: cd
+        onAccepted: {
+            hostname=ip;
+            v.setCamera(hostname, 52381)
+            v.connectCamera();
+        }
+    }
+
+    CameraSettingsDrawer {
+        id: csd
+
+        v: v
+    }
+
     ViscaController {
         id: v
 
@@ -97,6 +162,16 @@ ApplicationWindow {
         onIsPoweredChanged: mq.publish('cutevisca/powered', isPowered ? 'on' : 'off')
 
         onZoomPositionChanged: zoomSlider.value=zoomPosition;
+    }
+
+    Timer {
+        interval: 500
+        repeat: true
+        running: v.isConnected
+        onTriggered: {
+            v.inquirePosition()
+            v.inquireZoom()
+        }
     }
 
     VideoRouterClient {
@@ -357,6 +432,19 @@ ApplicationWindow {
                 enabled: v.isPowered && v.isConnected
                 onClicked: v.powerOff()
             }
+            ToolSeparator {
+
+            }
+            Label {
+                text: v.tiltPosition
+            }
+            Label {
+                text: v.panPosition
+            }
+            Label {
+                text: v.zoomPosition
+            }
+
         }
     }
 
@@ -420,6 +508,112 @@ ApplicationWindow {
                 Layout.fillHeight: true
                 onValueChanged: v.setPosition(ptc.speed, panSlider.value, value)
             }
+
+            ColumnLayout {
+                spacing: 4
+                Button {
+                    text: "Home"
+                    onClicked: v.homePosition();
+                }
+                Button {
+                    text: "In"
+                    onPressed: v.zoomIn()
+                    onReleased: v.zoomStop()
+                }
+
+                Slider {
+                    Layout.fillHeight: true
+                    Layout.alignment: Qt.AlignHCenter
+                    id: zoomSlider
+                    from: 0
+                    stepSize: 64
+                    to: 16384
+                    wheelEnabled: true
+                    orientation: Qt.Vertical
+                    onValueChanged: {
+                        v.zoomSet(value)
+                    }
+                }
+                SpinBox {
+                    from: 0
+                    to: 16384
+                    stepSize: 64
+                    editable: true
+                    onValueChanged: {
+                        console.debug("Zoom to", value)
+                        v.zoomSet(value)
+                    }
+                }
+
+                Button {
+                    text: "Out"
+                    onPressed: v.zoomOut()
+                    onReleased: v.zoomStop()
+                }
+
+            }
+
+            Rectangle {
+                Layout.alignment: Qt.AlignTop
+                color: "green"
+                border.color: "black"
+                border.width: 2
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                Layout.minimumWidth: 192
+                Layout.minimumHeight: 108
+                Layout.maximumHeight: 400
+                Layout.maximumWidth: 512
+
+                VideoOutput {
+                    id: cvo
+                    anchors.fill: parent
+                }
+            }
+
+            ColumnLayout {
+                Layout.alignment: Qt.AlignTop
+                spacing: 4
+                Button {
+                    text: "Iris reset"
+                    onClicked: v.irisReset()
+                }
+                Button {
+                    text: "Iris uo"
+                    onClicked: v.irisUp()
+                }
+                Button {
+                    text: "Iris Down"
+                    onClicked: v.irisDown()
+                }
+                Button {
+                    text: "Focus auto"
+                    onClicked: v.focusAuto()
+                }
+                Button {
+                    text: "Focus manual"
+                    onClicked: v.focusManual()
+                }
+                Button {
+                    text: "Infinity"
+                    onClicked: v.focusInfinity()
+                }
+
+                Button {
+                    text: "AF Trigger"
+                    onClicked: v.focusTrigger()
+                }
+
+                Button {
+                    text: "Tally-On"
+                    onClicked: v.tallyOn()
+                }
+                Button {
+                    text: "Tally-Off"
+                    onClicked: v.tallyOff()
+                }
+
+            }
         }
 
         Slider {
@@ -434,81 +628,16 @@ ApplicationWindow {
         RowLayout {
             spacing: 4
             Button {
-                text: "Home"
-                onClicked: v.homePosition();
-            }
-            Button {
-                text: "Get position"
-                onClicked: v.inquirePosition();
-            }
-        }
-
-        RowLayout {
-            spacing: 4
-            Button {
-                text: "Zoom In"
-                onClicked: v.zoomIn()
-            }
-            Button {
-                text: "In"
-                onPressed: {
-                    v.zoomIn()
-                }
-                onReleased: {
-                    v.zoomStop()
-                }
-            }
-            Slider {
-                id: zoomSlider
-                from: 0
-                stepSize: 64
-                to: 16384
-                wheelEnabled: true
-                onValueChanged: {
-                    v.zoomSet(value)
-                }
-            }
-            Button {
-                text: "Zoom Out"
-                onClicked: v.zoomOut()
-            }
-            Button {
-                text: "Out"
-                onPressed: {
-                    v.zoomOut()
-                }
-                onReleased: {
-                    v.zoomStop()
-                }
-            }
-            Button {
-                text: "Zoom Stop"
-                onClicked: v.zoomStop()
-            }
-            SpinBox {
-                from: 0
-                to: 16384
-                stepSize: 64
-                editable: true
-                onValueChanged: {
-                    console.debug("Zoom to", value)
-                    v.zoomSet(value)
-                }
-            }
-            Button {
-                text: "Get zoom"
-                onClicked: v.inquireZoom();
-            }
-        }
-        RowLayout {
-            spacing: 4
-            Button {
                 text: "Zoom In"
                 onClicked: v.zoomIn(zoomSpeed.value)
             }
             Button {
                 text: "Zoom Out"
                 onClicked: v.zoomOut(zoomSpeed.value)
+            }
+            Button {
+                text: "Zoom Stop"
+                onClicked: v.zoomStop()
             }
             SpinBox {
                 id: zoomSpeed
@@ -518,74 +647,6 @@ ApplicationWindow {
                 stepSize: 1
                 editable: true
             }
-            Label {
-                text: v.zoomPosition
-            }
-        }
-
-        RowLayout {
-            spacing: 4
-            Button {
-                text: "Focus auto"
-                onClicked: v.focusAuto()
-            }
-            Button {
-                text: "Focus manual"
-                onClicked: v.focusManual()
-            }
-            Button {
-                text: "Infinity"
-                onClicked: v.focusInfinity()
-            }
-
-            Button {
-                text: "AF Trigger"
-                onClicked: v.focusTrigger()
-            }
-        }
-
-        RowLayout {
-            spacing: 4
-            Button {
-                text: "Exp auto"
-                onClicked: v.expModeAuto()
-            }
-            Button {
-                text: "Exp Iris"
-                onClicked: v.expModeIrisPriority()
-            }
-            Button {
-                text: "Exp shutter"
-                onClicked: v.expModeShutterPriority()
-            }
-            Button {
-                text: "Exp Gain"
-                onClicked: v.expModeGainPriority()
-            }
-            Button {
-                text: "Exp manual"
-                onClicked: v.expModeManual();
-            }
-            Button {
-                text: "Get"
-                onClicked: v.inquireExpMode();
-            }
-        }
-
-        RowLayout {
-            spacing: 4
-            Button {
-                text: "Iris reset"
-                onClicked: v.irisReset()
-            }
-            Button {
-                text: "UP"
-                onClicked: v.irisUp()
-            }
-            Button {
-                text: "Down"
-                onClicked: v.irisDown()
-            }
         }
 
         RowLayout {
@@ -594,43 +655,27 @@ ApplicationWindow {
 
             ColumnLayout {
                 Layout.alignment: Qt.AlignTop
-                spacing: 5
-                Label {
-                    text: "Whitebalance"
-                }
-                Button {
-                    text: "Auto 1"
-                    onClicked: v.wbAuto1()
-                }
-                Button {
-                    text: "Auto 2"
-                    onClicked: v.wbAuto2()
-                }
-                Button {
-                    text: "Indoor"
-                    onClicked: v.wbIndoor()
-                }
-                Button {
-                    text: "Outdoor"
-                    onClicked: v.wbOutdoor()
-                }
-            }
-
-            ColumnLayout {
-                Layout.alignment: Qt.AlignTop
                 Layout.fillWidth: true
+                Layout.fillHeight: true
                 spacing: 4
                 Label {
                     text: "Memory Recall"
                 }
-                Repeater {
-                    model: memorySlots
-                    delegate: Button {
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
-                        required property int index
-                        text: index+1
-                        onClicked: v.recallMemoryPreset(index)
+                GridLayout {
+                    columns: 4
+                    rowSpacing: 4
+                    columnSpacing: 8
+
+                    Repeater {
+                        model: memorySlots
+                        delegate: Button {
+                            Layout.fillHeight: true
+                            Layout.fillWidth: true
+                            Layout.minimumHeight: 16
+                            required property int index
+                            text: index+1
+                            onClicked: v.recallMemoryPreset(index)
+                        }
                     }
                 }
             }
@@ -655,61 +700,27 @@ ApplicationWindow {
                     }
                 }
             }
-
-            ColumnLayout {
-                spacing: 4
-                Button {
-                    text: "Tally-On"
-                    onClicked: v.tallyOn()
-                }
-                Button {
-                    text: "Tally-Off"
-                    onClicked: v.tallyOff()
-                }
-
-            }
-
         }
-
-        Rectangle {
-            color: "green"
-            border.color: "black"
-            border.width: 2
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            Layout.minimumWidth: 192
-            Layout.minimumHeight: 108
-
-            VideoOutput {
-                id: cvo
-                anchors.fill: parent
-            }
-        }
-
     }
 
     MediaPlayer {
         id: mp
-        source: "rtsp://192.168.0.100:554/video1"
+        source: cameraStream
         videoOutput: cvo
     }
 
-    header: ToolBar {
-        RowLayout {
-            Label {
-                id: facePos
-            }
-            Label {
-                id: faceSize
-            }
-            ToolButton {
-                text: "Show"
-                onClicked: mp.play()
-            }
-            ToolButton {
-                text: "Stop"
-                onClicked: mp.stop()
-            }
-        }
+    MediaDevices {
+        id: md
     }
+
+    Camera {
+        id: ca
+        cameraDevice: md.defaultVideoInput
+    }
+
+    CaptureSession {
+        camera: ca
+        videoOutput: cvo
+    }
+
 }
