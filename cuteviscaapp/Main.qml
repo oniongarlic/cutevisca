@@ -198,7 +198,7 @@ ApplicationWindow {
         running: v.isConnected
         onTriggered: {
             v.inquirePosition()
-            v.inquireZoom()
+            // XXX stops active zoom. v.inquireZoom()
         }
     }
 
@@ -590,8 +590,8 @@ ApplicationWindow {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 192
                 Layout.minimumHeight: 108
-                Layout.maximumHeight: 400
-                Layout.maximumWidth: 512
+                Layout.maximumHeight: 108*4
+                Layout.maximumWidth: 192*4
 
                 VideoOutput {
                     id: cvo
@@ -734,7 +734,7 @@ ApplicationWindow {
     MediaPlayer {
         id: mp
         source: inputStremMenu.checked ? cameraStream : ''
-        //videoOutput: cvo
+        videoOutput: source!='' ? cvo : null
     }
 
     MediaDevices {
@@ -744,7 +744,6 @@ ApplicationWindow {
     Camera {
         id: ca
         cameraDevice: md.defaultVideoInput
-
         onErrorOccurred: console.debug(error, errorString)
     }
 
