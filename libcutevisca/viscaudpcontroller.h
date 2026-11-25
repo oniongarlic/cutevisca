@@ -13,7 +13,9 @@ class ViscaUdpController : public QObject {
     Q_PROPERTY(bool isPowered READ isPowered NOTIFY isPoweredChanged FINAL)
     Q_PROPERTY(bool isConnected READ isConnected NOTIFY isConnectedChanged FINAL)
 
-    Q_PROPERTY(int zoomPosition READ zoomPosition NOTIFY zoomPositionChanged FINAL)    
+    Q_PROPERTY(int zoomPosition READ zoomPosition NOTIFY zoomPositionChanged FINAL)
+    Q_PROPERTY(int panPosition READ panPosition NOTIFY panPositionChanged FINAL)
+    Q_PROPERTY(int tiltPosition READ tiltPosition NOTIFY tiltPositionChanged FINAL)
 
 public:
     explicit ViscaUdpController(QObject *parent = nullptr);
@@ -118,6 +120,8 @@ public:
     bool isPowered() const;
     bool isConnected() const;
 
+    int panPosition() const;
+    int tiltPosition() const;
     int zoomPosition() const;
 
 private slots:
@@ -138,10 +142,9 @@ private:
 
     void parseResponse(const QByteArray &response, quint32 seq);
 
-    int m_zoomPosition;
-
-    int m_panPosition;
-    int m_tiltPosition;
+    int m_zoomPosition=0;
+    int m_panPosition=0;
+    int m_tiltPosition=0;
 
 signals:
     void connected();

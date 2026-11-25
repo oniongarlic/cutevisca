@@ -398,6 +398,16 @@ bool ViscaUdpController::isConnected() const
     return m_isConnected;
 }
 
+int ViscaUdpController::panPosition() const
+{
+    return m_panPosition;
+}
+
+int ViscaUdpController::tiltPosition() const
+{
+    return m_tiltPosition;
+}
+
 int ViscaUdpController::zoomPosition() const
 {
     return m_zoomPosition;
