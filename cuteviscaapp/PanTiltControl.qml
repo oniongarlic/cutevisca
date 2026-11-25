@@ -68,7 +68,7 @@ GridLayout {
     Button {
         text: "Down"
         Layout.fillHeight: true
-        onPressed: ptc.pressed(0, -1)
+        onPressed: ptc.pressed(0, 1)
         onReleased: ptc.released()
     }
     Button {
