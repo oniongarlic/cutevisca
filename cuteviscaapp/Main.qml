@@ -67,15 +67,19 @@ ApplicationWindow {
         }
         Menu {
             title: "Video"
+            enabled: !inputActive
 
             MenuItem {
+                id: inputStremMenu
                 text: "Stream"
                 checkable: true
-
+                ButtonGroup.group: inGroup
             }
             MenuItem {
+                id: inputCaptureMenu
                 text: "Capture"
                 checkable: true
+                ButtonGroup.group: inGroup
             }
         }
 
@@ -107,6 +111,10 @@ ApplicationWindow {
         }
     }
 
+    ButtonGroup {
+        id: inGroup
+    }
+
     header: ToolBar {
         RowLayout {
             ToolButton {
@@ -131,12 +139,32 @@ ApplicationWindow {
 
             ToolButton {
                 text: "Show"
-                onClicked: mp.play()
+                enabled: !inputActive
+                onClicked: showCameraInput();
             }
             ToolButton {
                 text: "Stop"
-                onClicked: mp.stop()
+                enabled: inputActive
+                onClicked: stopCameraInput()
             }
+        }
+    }
+
+    property bool inputActive: mp.playing || ca.active
+
+    function showCameraInput() {
+        if (inputStremMenu.checked)
+            mp.play();
+        else if (inputCaptureMenu.checked) {
+            ca.start();
+        }
+    }
+
+    function stopCameraInput() {
+        if (inputStremMenu.checked)
+            mp.stop();
+        else if (inputCaptureMenu.checked) {
+            ca.stop();
         }
     }
 
@@ -705,8 +733,8 @@ ApplicationWindow {
 
     MediaPlayer {
         id: mp
-        source: cameraStream
-        videoOutput: cvo
+        source: inputStremMenu.checked ? cameraStream : ''
+        //videoOutput: cvo
     }
 
     MediaDevices {
@@ -716,9 +744,12 @@ ApplicationWindow {
     Camera {
         id: ca
         cameraDevice: md.defaultVideoInput
+
+        onErrorOccurred: console.debug(error, errorString)
     }
 
     CaptureSession {
+        id: capture
         camera: ca
         videoOutput: cvo
     }
